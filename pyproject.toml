@@ -1,12 +1,16 @@
 [project]
-name = "ml-sandbox"
+name = "mortality-prediction"
 version = "0.0.1"
 authors = [{ name = "David Tokar", email = "1413david@gmail.com" }]
 description = "Local ML sandbox"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "matplotlib>=3.10.8",
+    "pyarrow>=23.0.1",
     "pydantic>=2.12.5",
+    "scikit-learn>=1.8.0",
+    "seaborn>=0.13.2",
 ]
 
 [project.optional-dependencies]
@@ -81,3 +85,8 @@ force-single-line = true
 lines-between-types = 1
 lines-after-imports = 2
 known-first-party = ["ml_sandbox"]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15.7",
+]

@@ -1,0 +1,3 @@
+uv run python src/mortality_prediction/scripts/run_dataloader.py /workspaces/intensive_care_time_series_modeling_for_mortality_predictions/data/set-a &> /workspaces/intensive_care_time_series_modeling_for_mortality_predictions/data/log.a
+uv run python src/mortality_prediction/scripts/run_dataloader.py /workspaces/intensive_care_time_series_modeling_for_mortality_predictions/data/set-b &> /workspaces/intensive_care_time_series_modeling_for_mortality_predictions/data/log.b
+uv run python src/mortality_prediction/scripts/run_dataloader.py /workspaces/intensive_care_time_series_modeling_for_mortality_predictions/data/set-c &> /workspaces/intensive_care_time_series_modeling_for_mortality_predictions/data/log.c
