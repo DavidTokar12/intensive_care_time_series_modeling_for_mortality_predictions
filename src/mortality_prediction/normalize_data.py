@@ -84,7 +84,6 @@ def scale_patients(
     """
     scaled = copy.deepcopy(patients)
     for patient in scaled.values():
-        # Static continuous fields
         for field in ("age", "height_cm", "weight_kg"):
             if field in norm_params:
                 v = getattr(patient.static, field)
@@ -94,7 +93,6 @@ def scale_patients(
                         field,
                         scale_value(field, float(v), norm_params[field]),
                     )
-        # Time-series measurements
         for tp in patient.timeseries:
             for m in tp.measurements:
                 if m.param == ParamType.GCS:
@@ -118,8 +116,6 @@ def _build_patient_df(patient_id: str, patient: Patient) -> pd.DataFrame:
 
     Missing observations are left as NaN / pd.NA.
     """
-    # Accumulate (hour -> param_name -> value), processing in time order so
-    # later readings in the same bin overwrite earlier ones (last value wins).
     hourly: dict[int, dict[str, float]] = {h: {} for h in HOURS}
 
     for tp in sorted(patient.timeseries, key=lambda x: x.time):
@@ -155,7 +151,6 @@ def build_dataset(patients: dict[str, Patient]) -> pd.DataFrame:
     frames = [_build_patient_df(pid, p) for pid, p in patients.items()]
     df = pd.concat(frames, ignore_index=True)
 
-    # Ensure every expected column exists (some params may be absent in a set)
     for col in COLUMN_ORDER:
         if col not in df.columns:
             df[col] = pd.NA
