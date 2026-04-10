@@ -242,7 +242,7 @@ def _build_patient_vector(patient_id: str, patient: Patient) -> dict:
     Static fields and label are appended at the end.
     Missing values (fewer than 2 observations) are left as pd.NA.
     """
-    # Store (time_hours, value) pairs per param, sorted by time.
+
     param_obs: dict[str, list[tuple[float, float]]] = {}
     for tp in sorted(patient.timeseries, key=lambda x: x.time):
         t_hours = tp.time.total_seconds() / 3600.0
@@ -302,7 +302,6 @@ def _patient_to_triplets(patient_id: str, patient: Patient) -> list[dict]:
 
     events: list[tuple[float, str, float]] = []  # (t, var_name, value)
 
-    # Static fields at t = 0
     s = patient.static
     for field in STATIC_COLS:
         raw = getattr(s, field)
@@ -311,7 +310,6 @@ def _patient_to_triplets(patient_id: str, patient: Patient) -> list[dict]:
         v = _GENDER_FLOAT[raw] if isinstance(raw, Gender) else float(raw)
         events.append((0.0, field, v))
 
-    # Time-series measurements — scale time to [0, 1] over the 48-hour window
     for tp in patient.timeseries:
         t = tp.time.total_seconds() / 3600.0 / 48.0
         for m in tp.measurements:

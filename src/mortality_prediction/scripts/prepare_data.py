@@ -51,13 +51,22 @@ if __name__ == "__main__":
         patients = loader()
         scaled = scale_patients(patients, norm_params)
 
+        # ── Normalized exports ────────────────────────────────────────────────
         convert_to_vector_format(safe_name, scaled, fill_missing=True)
         # → set_{a,b,c}_vector_imputed.parquet
+        convert_to_vector_format(safe_name, scaled, fill_missing=False)
+        # → set_{a,b,c}_vector_not_imputed.parquet
         convert_to_table_format(safe_name, scaled, fill_missing=True)
         # → set_{a,b,c}_table_imputed.parquet
         convert_to_table_format(safe_name, scaled, fill_missing=False)
         # → set_{a,b,c}_table_not_imputed.parquet
         convert_to_triplet_format(safe_name, scaled)
         # → set_{a,b,c}_triplet.parquet
+
+        # ── Raw exports: no normalization, no imputation (for LLM prompts) ─────
+        convert_to_vector_format(f"{safe_name}_raw", patients, fill_missing=False)
+        # → set_{a,b,c}_raw_vector_not_imputed.parquet
+        convert_to_table_format(f"{safe_name}_raw", patients, fill_missing=False)
+        # → set_{a,b,c}_raw_table_not_imputed.parquet
 
     logger.info("\nAll data files prepared successfully.")

@@ -7,6 +7,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "black[jupyter]>=26.3.1",
+    "chronos-forecasting[extras]>=2.2",
     "matplotlib>=3.10.8",
     "pyarrow>=23.0.1",
     "pydantic>=2.12.5",
@@ -14,6 +15,7 @@ dependencies = [
     "scipy>=1.17.1",
     "seaborn>=0.13.2",
     "torch>=2.11.0",
+    "umap-learn>=0.5.12",
 ]
 
 [project.optional-dependencies]

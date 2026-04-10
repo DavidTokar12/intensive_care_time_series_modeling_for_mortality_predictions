@@ -19,6 +19,7 @@ from sklearn.preprocessing import StandardScaler
 
 from mortality_prediction.utils import DATA_DIR
 
+
 logger = logging.getLogger(__name__)
 
 STATIC_PARAMS = {"RecordID", "Age", "Gender", "Height", "ICUType", "Weight"}
