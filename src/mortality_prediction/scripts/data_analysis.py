@@ -19,7 +19,6 @@ from mortality_prediction.dataloader import get_dataset_a
 from mortality_prediction.dataloader import get_dataset_b
 from mortality_prediction.dataloader import get_dataset_c
 
-
 logging.basicConfig(level=logging.INFO, format="%(levelname)s — %(message)s")
 logger = logging.getLogger(__name__)
 

@@ -19,7 +19,6 @@ from sklearn.preprocessing import StandardScaler
 
 from mortality_prediction.utils import DATA_DIR
 
-
 logger = logging.getLogger(__name__)
 
 STATIC_PARAMS = {"RecordID", "Age", "Gender", "Height", "ICUType", "Weight"}
@@ -152,35 +151,61 @@ CATEGORICAL_PARAMS: frozenset[ParamType] = frozenset(
 # Normalization                                                                #
 # --------------------------------------------------------------------------- #
 
-_ROBUST_TS_PARAMS: frozenset[ParamType] = frozenset({
-    # Vitals
-    ParamType.HR, ParamType.TEMP, ParamType.RESP_RATE,
-    # Invasive blood pressures
-    ParamType.DIAS_ABP, ParamType.MAP, ParamType.SYS_ABP,
-    # Non-invasive blood pressures
-    ParamType.NI_DIAS_ABP, ParamType.NI_MAP, ParamType.NI_SYS_ABP,
-    # Electrolytes
-    ParamType.NA, ParamType.K, ParamType.MG, ParamType.HCO3,
-    # Blood panel
-    ParamType.ALBUMIN, ParamType.CHOLESTEROL, ParamType.HCT, ParamType.PLATELETS,
-    # Blood gases & O2
-    ParamType.PACO2, ParamType.PH, ParamType.FIO2, ParamType.SAO2,
-})
+_ROBUST_TS_PARAMS: frozenset[ParamType] = frozenset(
+    {
+        # Vitals
+        ParamType.HR,
+        ParamType.TEMP,
+        ParamType.RESP_RATE,
+        # Invasive blood pressures
+        ParamType.DIAS_ABP,
+        ParamType.MAP,
+        ParamType.SYS_ABP,
+        # Non-invasive blood pressures
+        ParamType.NI_DIAS_ABP,
+        ParamType.NI_MAP,
+        ParamType.NI_SYS_ABP,
+        # Electrolytes
+        ParamType.NA,
+        ParamType.K,
+        ParamType.MG,
+        ParamType.HCO3,
+        # Blood panel
+        ParamType.ALBUMIN,
+        ParamType.CHOLESTEROL,
+        ParamType.HCT,
+        ParamType.PLATELETS,
+        # Blood gases & O2
+        ParamType.PACO2,
+        ParamType.PH,
+        ParamType.FIO2,
+        ParamType.SAO2,
+    }
+)
 
-_LOG_STANDARD_TS_PARAMS: frozenset[ParamType] = frozenset({
-    # Liver & enzymes
-    ParamType.ALP, ParamType.ALT, ParamType.AST, ParamType.BILIRUBIN,
-    # Kidney & waste
-    ParamType.BUN, ParamType.CREATININE, ParamType.URINE,
-    # Metabolic & stress
-    ParamType.GLUCOSE, ParamType.LACTATE,
-    # Cardiac markers
-    ParamType.TROPONIN_I, ParamType.TROPONIN_T,
-    # Blood counts
-    ParamType.WBC,
-    # Blood gases
-    ParamType.PAO2,
-})
+_LOG_STANDARD_TS_PARAMS: frozenset[ParamType] = frozenset(
+    {
+        # Liver & enzymes
+        ParamType.ALP,
+        ParamType.ALT,
+        ParamType.AST,
+        ParamType.BILIRUBIN,
+        # Kidney & waste
+        ParamType.BUN,
+        ParamType.CREATININE,
+        ParamType.URINE,
+        # Metabolic & stress
+        ParamType.GLUCOSE,
+        ParamType.LACTATE,
+        # Cardiac markers
+        ParamType.TROPONIN_I,
+        ParamType.TROPONIN_T,
+        # Blood counts
+        ParamType.WBC,
+        # Blood gases
+        ParamType.PAO2,
+    }
+)
 
 _ROBUST_STATIC_PARAMS: frozenset[str] = frozenset({"age", "height_cm", "weight_kg"})
 
@@ -380,11 +405,11 @@ def main(input_dir: str, outcomes: dict[str, bool] | None = None) -> dict[str, P
 
         patient_id = filename.removesuffix(".txt")
         filepath = os.path.join(input_dir, filename)
-        death = outcomes.get(patient_id) if outcomes else None
+        if outcomes is not None and patient_id not in outcomes:
+            logger.warning(f"No outcome label for {patient_id} — dropping patient.")
+            continue
 
-        if outcomes and patient_id not in outcomes:
-            logger.warning(f"No outcome label found for patient {patient_id}")
-
+        death = outcomes.get(patient_id) if outcomes is not None else None
         patient = load_patient(filepath, death=death)
         patients[patient_id] = patient
 
@@ -402,10 +427,19 @@ def _load_or_cache_dataset(set_name: str) -> dict[str, Patient]:
         logger.info(f"Loading {set_name} from cache: {cache_file}")
         with open(cache_file) as f:
             data = json.load(f)
-        return {
-            pid: Patient.model_validate(patient_data)
-            for pid, patient_data in data.items()
-        }
+        patients = {}
+        dropped = 0
+        for pid, patient_data in data.items():
+            patient = Patient.model_validate(patient_data)
+            if patient.static.in_hospital_death is None:
+                dropped += 1
+                continue
+            patients[pid] = patient
+        if dropped:
+            logger.warning(
+                f"Dropped {dropped} patients from {cache_file} with no in_hospital_death label."
+            )
+        return patients
 
     outcomes = load_outcomes(outcomes_file)
 
@@ -433,7 +467,9 @@ def _load_or_cache_dataset(set_name: str) -> dict[str, Patient]:
     return patients
 
 
-def compute_normalization_params(patients: dict[str, Patient]) -> dict[str, ScalerParams]:
+def compute_normalization_params(
+    patients: dict[str, Patient],
+) -> dict[str, ScalerParams]:
     """
     Fit normalization scalers on all observed values across the patient cohort.
 

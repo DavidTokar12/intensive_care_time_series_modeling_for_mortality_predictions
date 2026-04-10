@@ -1,8 +1,3 @@
-"""
-Plot scaled distributions for set-a using the standard analysis plots.
-Outputs are saved to DATA_DIR/plots/ with the prefix 'a_scaled_'.
-"""
-
 import json
 import os
 
@@ -13,7 +8,6 @@ from mortality_prediction.scripts.data_analysis import plot_static_distributions
 from mortality_prediction.scripts.data_analysis import plot_timeseries_distributions
 from mortality_prediction.utils import DATA_DIR
 
-
 NORM_PARAMS_PATH = os.path.join(DATA_DIR, "set_a_normalization_params.json")
 PLOTS_DIR = os.path.join(DATA_DIR, "plots")
 
@@ -22,7 +16,9 @@ if __name__ == "__main__":
     patients = get_dataset_a()
 
     with open(NORM_PARAMS_PATH) as f:
-        norm_params = {k: ScalerParams.model_validate(v) for k, v in json.load(f).items()}
+        norm_params = {
+            k: ScalerParams.model_validate(v) for k, v in json.load(f).items()
+        }
 
     print("Scaling patients...")
     scaled = scale_patients(patients, norm_params)
